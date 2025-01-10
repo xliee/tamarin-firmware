@@ -1,3 +1,19 @@
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.1.0)
+set(toolchainVersion 13_3_Rel1)
+set(picotoolVersion 2.1.0)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
+set(PICO_BOARD pico2 CACHE STRING "Board type")
+
 cmake_minimum_required(VERSION 3.13)
 # initialize the SDK based on PICO_SDK_PATH
 # note: this must happen before project()
@@ -19,24 +35,22 @@ add_executable(tamarin_firmware)
 target_compile_options(tamarin_firmware INTERFACE -DPICO_ENTER_USB_BOOT_ON_EXIT=1)
 
 
-pico_generate_pio_header(tamarin_firmware ${CMAKE_CURRENT_LIST_DIR}/lightning_tx.pio)
-pico_generate_pio_header(tamarin_firmware ${CMAKE_CURRENT_LIST_DIR}/lightning_rx.pio)
-pico_generate_pio_header(tamarin_firmware ${CMAKE_CURRENT_LIST_DIR}/probe.pio)
-
-# Required so the build finds tusb_config.h
-target_include_directories(tamarin_firmware PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-
-target_sources(tamarin_firmware PRIVATE
-        tamarin_probe.c
-        main.c
-        usb_descriptors.c
-        util.c
-        crc.c
-        )
-
-target_link_libraries(tamarin_firmware PRIVATE pico_stdlib tinyusb_device tinyusb_board pico_stdio hardware_i2c pico_multicore pico_time pico_sync hardware_pio)
+target_link_libraries(tamarin_firmware PRIVATE
+    pico_stdlib
+    tinyusb_device
+    tinyusb_board
+    pico_stdio
+    hardware_i2c
+    pico_multicore
+    pico_time
+    pico_sync
+    hardware_pio
+    pico_unique_id
+)
 pico_add_extra_outputs(tamarin_firmware)
 
+add_subdirectory(src)
+
 # enable usb output, disable uart output
-#pico_enable_stdio_usb(tamarin_firmware 1)
-#pico_enable_stdio_uart(tamarin_firmware 0)
+# pico_enable_stdio_usb(tamarin_firmware 1)
+# pico_enable_stdio_uart(tamarin_firmware 0)
